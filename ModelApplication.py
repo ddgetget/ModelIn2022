@@ -7,6 +7,9 @@
 # @File:    ModelApplication.py
 # @Project: ModelIn2022
 # @Package:
+from utils.Version import VersionInfo
+from utils.docs import ReporInfot
+
 
 class BaseModel(object):
     def __init__(self, params={}):
@@ -32,4 +35,18 @@ class BaseModel(object):
 
     def api(self, data):
         result = {}
-        result
+        return result
+
+    def describe(self, info, export=False):
+        versionInfo = VersionInfo(info=info)
+        desc = {}
+        for item in versionInfo.__dict__.items():
+            if item[0] == "info":
+                continue
+            desc[item[0]] = item[1]
+
+        if export:
+            report = ReporInfot()
+            report.w_version(desc)
+            report.write()
+        return desc

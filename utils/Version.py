@@ -7,25 +7,30 @@
 # @File:    Version.py
 # @Project: ModelIn2022
 # @Package:
+import datetime
+
+
 class VersionInfo(object):
-    def __init__(self, params={}):
-        self.params = params
+    def __init__(self, info={}):
+        self.info = info
         self.auther = "LongGengYung"
         self.version = "V-1"
-        self.date = "2022-3-3 12:09:43"
+        self.date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.task = "CV"
         self.application = "ImageClassificationFromScratch"
+        self.function = "your module function"
+
 
     def update_version(self):
-        self.version = self.params['version'] if "version" in self.params.keys() else self.version
-        self.date = self.params['date'] if "date" in self.params.keys() else self.date
-        self.task = self.params['task'] if "date" in self.params.keys() else self.task
-        self.application = self.params['application'] if "date" in self.params.keys() else self.application
+        self.version = self.info['version'] if "version" in self.info.keys() else self.version
+        self.task = self.info['task'] if "date" in self.info.keys() else self.task
+        self.application = self.info['application'] if "date" in self.info.keys() else self.application
+        self.function = self.info['function'] if "date" in self.info.keys() else self.function
 
 
 if __name__ == '__main__':
-    params = {"version": "V-2.0"}
-    versionInfo = VersionInfo(params=params)
+    info = {"version": "V-2.0"}
+    versionInfo = VersionInfo(info=info)
     versionInfo.update_version()
     print(versionInfo.date)
     print(versionInfo)

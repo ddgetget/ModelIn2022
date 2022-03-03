@@ -7,3 +7,15 @@
 # @File:    ImageClassificationFromScratch.py
 # @Project: ModelIn2022
 # @Package:
+from ModelApplication import BaseModel
+from utils.Version import VersionInfo
+
+
+class CVModel(BaseModel):
+    def __init__(self, params={}):
+        super(CVModel, self).__init__()
+
+    def fit(self, datasets):
+        pass
+
+
