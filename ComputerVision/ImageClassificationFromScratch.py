@@ -19,3 +19,7 @@ class CVModel(BaseModel):
         pass
 
 
+
+
+if __name__=="__main__":
+    pass
