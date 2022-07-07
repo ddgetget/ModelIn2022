@@ -14,6 +14,7 @@ from paddlenlp.data import Vocab
 
 parser = argparse.ArgumentParser((__doc__))
 parser.add_argument("--vocab_path", type=str,
+
                     default="output/vocab.json", help="词表的路径")
 parser.add_argument("--network", choices=['bow', 'lstm', 'bilstm', 'gru',
                     'bigru', 'rnn', 'birnn', 'bilstm_attn', 'cnn'], help="选择的神经网络")
@@ -28,4 +29,3 @@ args=parser.parse_args()
 def main():
     # 加载词库
     vocab=Vocab.from_json(args.vocab_path)
-    
