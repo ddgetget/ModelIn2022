@@ -11,6 +11,7 @@
 # 一种高性能的字典
 from collections import defaultdict
 from paddlenlp import Taskflow
+import numpy as np
 
 word_segmenter = Taskflow("word_segmentation", mode="fast")
 
@@ -76,6 +77,27 @@ def build_vocab(texts, stopwords=[], num_words=None, min_freq=10, unk_token="[UN
     return word_index
 
 
-def convert_example():
-    pass
+def convert_example(example, tokenizer, is_test=False):
+    """
+    转换层一个小批次
+    :param example: 一个batch 数据
+    :param tokenizer: 词表
+    :param is_test:
+    :return:
+    """
+    # 根据tokenizer查询对应的单词id
+    input_ids = tokenizer.encode(example['text'])
+    # 获取对应的单词的长度
+    valid_length = np.array(len(input_ids), dtype='int64')
+    # 数据类型转换ndarray型
+    input_ids = np.array(input_ids, dtype='int64')
+
+    if not is_test:
+        # 针对训练集和验证集，需要拿到标签列，，返回的时候也需要
+        label = np.array(example['label'], dtype='int64')
+        return input_ids, valid_length, label
+    else:
+        # 测试集，没有标签，方便些
+        return input_ids, valid_length
+
     # TODO 需要继续

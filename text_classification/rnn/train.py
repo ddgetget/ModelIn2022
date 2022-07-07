@@ -29,20 +29,20 @@ import paddle
 from paddlenlp.datasets import load_dataset
 
 # paddlenlp领域的数据处理常用方法汇集
-from paddlenlp.data import Vocab, JiebaTokenizer
+from paddlenlp.data import Vocab, JiebaTokenizer, Stack, Pad, Tuple
 
 # 使用工具集里面咋们自己的构建方法
 from model import BoModel
-from utils import build_vocab,convert_example
+from utils import build_vocab, convert_example
 
 parser = argparse.ArgumentParser(__doc__)
-parser.add_argument("--epochs", type=int, default=15, help="训练的总次数")
+parser.add_argument("--epochs", type=int, default=1, help="训练的总次数")
 parser.add_argument("--device", choices=['cpu', 'gpu', 'xpu', 'npu'], default='cpu', help="选择训练的机器设备")
 parser.add_argument("--lr", type=float, default=5e-5, help="训练的学习率")
 parser.add_argument("--save_dir", type=str, default="checkpoints/", help="模型保存的默认路径")
 parser.add_argument("--batch_size", type=int, default=64, help="默认训练批次大小")
 parser.add_argument("--vocab_path", type=str, default="output/vocab.json", help="默认保存词典的位置")
-parser.add_argument("--netwoprk",
+parser.add_argument("--network",
                     choices=['bow', 'lstm', 'bilstm', 'gru', 'bigru', 'rnn', 'birnn', 'bilstm_attn', 'cnn'],
                     default='bow', help="选择神经网络,默认词带模型bow")
 parser.add_argument("--init_from_ckpt", type=str, default=None, help="初始化模型加载路径")
@@ -139,6 +139,44 @@ if __name__ == '__main__':
     else:
         raise ValueError("不知道的模型网络:%s，你只能选择bow, lstm, bilstm, cnn, gru, bigru, rnn, birnn and bilstm_attn" % network)
 
+    # 自己组网，相当于还是一个layer,需要在这里转一下
+    model = paddle.Model(model)
+
     # 读取数据并弄成生成器型的mini-batchs
     tokenizer = JiebaTokenizer(vocab)
+    # 这里需要输入特定格式的数据，针对训练，验证还要包含标签，针对测试，只需要单词和单词长度
     trans_fn = partial(convert_example, tokenizer=tokenizer, is_test=False)
+
+    # TODO 这块暂时还没法用中文解释清楚
+    batchify_fn = lambda samples, fn=Tuple(
+        Pad(axis=0, pad_val=vocab.token_to_idx.get('[PAD]', 0)),  # 输入文字的id
+        Stack(dtype='int64'),  # 序列长度
+        Stack(dtype='int64')  # 标签
+    ): [data for data in fn(samples)]
+
+    # 利用分布式数据函数制作数据
+    train_loader = create_dataloader(train_ds, trans_fn=trans_fn, batch_size=args.batch_size, mode='train',
+                                     batchify_fn=batchify_fn)
+    # 验证集也按照训练集的方式进行
+    dev_loader = create_dataloader(dev_ds, trans_fn=trans_fn, batch_size=args.batch_size, mode='train',
+                                   batchify_fn=batchify_fn)
+
+    # 构造优化器，方柏霓在求解的使用，加速达到优化,输入模型的参数，以及学习率
+    optimizer = paddle.optimizer.Adam(parameters=model.parameters(), learning_rate=args.lr)
+
+    # 定义损失函数和矩阵,这其实是一个分类围绕，所有使用了交叉熵损失
+    criterion = paddle.nn.CrossEntropyLoss()
+    # 定义了准确率函数
+    metric = paddle.metric.Accuracy()
+
+    # 模型的前置工作
+    model.prepare(optimizer, criterion, metric)
+
+    # 加载预训练模型
+    if args.init_from_ckpt:
+        model.load(args.init_from_ckpt)
+        print ("已经加载了预训练模型%s" % args.init_from_ckpt)
+
+    # 开始训练模型以及验证
+    callback = paddle.callbacks.ProgBarLogger(log_freq=10, verbose=3)
+    model.fit(train_loader, dev_loader, epochs=args.epochs, save_dir=args.save_dir, callbacks=callback)
