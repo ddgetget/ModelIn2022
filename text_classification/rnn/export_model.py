@@ -10,6 +10,7 @@
 # @Ref:
 
 import argparse
+from paddlenlp.data import Vocab
 
 parser = argparse.ArgumentParser((__doc__))
 parser.add_argument("--vocab_path", type=str,
@@ -24,3 +25,7 @@ args=parser.parse_args()
 
 
 # 主逻辑寒素
+def main():
+    # 加载词库
+    vocab=Vocab.from_json(args.vocab_path)
+    
