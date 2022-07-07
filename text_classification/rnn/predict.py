@@ -13,9 +13,12 @@
 import argparse
 
 import paddle
-from paddlenlp.data import Tuple, Pad, Stack
+from paddlenlp.data import Tuple, Pad, Stack, Vocab, JiebaTokenizer
 
 import paddle.nn.functional as F
+
+from model import BoModel
+from utils import preprocess_prediction_data
 
 parser = argparse.ArgumentParser(__doc__)
 
@@ -24,6 +27,7 @@ parser.add_argument("--batch_size", type=int, default=1, help="批次大小")
 parser.add_argument("--vocab_path", type=str, default="output/vocab.json", help="字典表的路径")
 parser.add_argument("--network",
                     choices=['bow', 'lstm', 'bilstm', 'gru', 'bigru', 'rnn', 'birnn', 'bilstm_attn', 'cnn'],
+                    default="bow",
                     help="待选择的网络")
 
 parser.add_argument("--params_path", type=str, default="checkpoints/final.pdparams", help="训练好的模型的地址")
@@ -75,3 +79,55 @@ def predict(model, data, label_map, batch_size=1, pad_token_id=0):
         # 对一个批次的结果拼接
         results.extend(labels)
     return results
+
+
+# 主逻辑函数
+if __name__ == '__main__':
+    # 默认先设置设备
+    paddle.set_device(args.device)
+
+    # 加载词表
+    vocab = Vocab.from_json(args.vocab_path)
+    # 标签对照表
+    label_map = {0: 'negative', 1: 'positive'}
+
+    # 构建网络
+    network = args.network.lower()
+    # 获取词表长度
+    vocab_size = len(vocab)
+    # 获取类别长度
+    num_classes = len(label_map)
+    # 补齐id
+    pad_token_id = vocab.to_indices('[PAD]')
+
+    if network == "bow":
+        # 针对词带模型
+        model = BoModel(vocab_size=vocab_size, num_classes=num_classes, padding_idx=pad_token_id)
+    else:
+        raise ValueError(
+            "不清楚的网络%s,请输入bow, lstm, bilstm, cnn, gru, bigru, rnn, birnn and bilstm_attn其中的一个" % args.network)
+
+    # 加载模型
+    state_dict = paddle.load(args.params_path)
+    # 模型填充数据
+    model.set_dict(state_dict)
+
+    # 准备数据
+    data = [
+        '非常不错，服务很好，位于市中心区，交通方便，不过价格也高！',
+        '怀着十分激动的心情放映，可是看着看着发现，在放映完毕后，出现一集米老鼠的动画片',
+        '作为老的四星酒店，房间依然很整洁，相当不错。机场接机服务很好，可以在车上办理入住手续，节省时间。',
+    ]
+    # 转换touken必须和训练的时候一致
+    tokenizer = JiebaTokenizer(vocab)
+
+    # 获取一个列表型，内部含有id和句子长度的数据
+    examples = preprocess_prediction_data(data, tokenizer)
+
+    # 调用预测，对所有数据进行分类
+    results = predict(model, examples, label_map=label_map, batch_size=args.batch_size,
+                      pad_token_id=vocab.token_to_idx.get("[PAD]", 0))
+
+    # 打印预测的结果
+    for idx, text in enumerate(data):
+        print("Data:{} \t label:{}".format(text, results[idx]))

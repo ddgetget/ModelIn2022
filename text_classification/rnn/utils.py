@@ -16,6 +16,23 @@ import numpy as np
 word_segmenter = Taskflow("word_segmentation", mode="fast")
 
 
+def preprocess_prediction_data(data, tokenizer):
+    """
+    获取用于预测部分的数据
+    :param data: 原始列表数据
+    :param tokenizer: 词表
+    :return: 列表型，每一项包含句子每个字的id和句子的长度
+    """
+    examples = []
+    for text in data:
+        # 针对每一条数据转成id
+        ids = tokenizer.encode(text)
+        # 组装数据
+        examples.append((ids, len(ids)))
+
+    return examples
+
+
 def build_vocab(texts, stopwords=[], num_words=None, min_freq=10, unk_token="[UNK]", pad_token="[PAD]"):
     """
     构建词表索引
