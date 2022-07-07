@@ -74,3 +74,8 @@ def build_vocab(texts, stopwords=[], num_words=None, min_freq=10, unk_token="[UN
 
     # 返回一个含有单词索引的，且经过逻辑处理的字典语料库
     return word_index
+
+
+def convert_example():
+    pass
+    # TODO 需要继续

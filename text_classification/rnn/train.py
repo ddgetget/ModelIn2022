@@ -29,10 +29,11 @@ import paddle
 from paddlenlp.datasets import load_dataset
 
 # paddlenlp领域的数据处理常用方法汇集
-from paddlenlp.data import Vocab
+from paddlenlp.data import Vocab, JiebaTokenizer
 
 # 使用工具集里面咋们自己的构建方法
-from utils import build_vocab
+from model import BoModel
+from utils import build_vocab,convert_example
 
 parser = argparse.ArgumentParser(__doc__)
 parser.add_argument("--epochs", type=int, default=15, help="训练的总次数")
@@ -121,3 +122,23 @@ if __name__ == '__main__':
     if not os.path.exists("output"):
         os.mkdir("output")
     vocab.to_json(args.vocab_path)
+
+    # 组网部分,防止用户输出大写的网络明湖曾
+    network = args.network.lower()
+    # 计算当前有效词表的大小
+    vocab_size = len(vocab)
+    # 计算训练集的不同标签个数
+    num_classes = len(train_ds.label_list)
+
+    # 获取PDA这个token的索引，气=其实之前我们已经知道了，在0号位置
+    pad_token_id = vocab.to_indices('[PAD]')
+
+    if network == "bow":
+        # 加载BOW模型
+        model = BoModel(vocab_size=vocab_size, num_classes=num_classes, padding_idx=pad_token_id)
+    else:
+        raise ValueError("不知道的模型网络:%s，你只能选择bow, lstm, bilstm, cnn, gru, bigru, rnn, birnn and bilstm_attn" % network)
+
+    # 读取数据并弄成生成器型的mini-batchs
+    tokenizer = JiebaTokenizer(vocab)
+    trans_fn = partial(convert_example, tokenizer=tokenizer, is_test=False)
