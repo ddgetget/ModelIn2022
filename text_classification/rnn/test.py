@@ -15,5 +15,11 @@ def test_list():
     print(range(len(sorted_voc)))
 
 
+def test_batch():
+    for i in range(0, 10, 3):
+        print(i)
+
+
 if __name__ == '__main__':
-    test_list()
+    # test_list()
+    test_batch()
