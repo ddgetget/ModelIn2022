@@ -1,14 +1,15 @@
 # Byte-compiled / optimized / DLL files
 **/model/
-**inputs/
 **/outputs/
 **/data/
-.idea/
+**/checkpoints/
+**/.idea/
+
+
 __pycache__/
 *.py[cod]
 *$py.class
 
-**/.idea/
 # C extensions
 *.so
 
