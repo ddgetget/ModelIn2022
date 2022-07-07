@@ -17,14 +17,14 @@ from paddlenlp.data import Tuple, Pad, Stack, Vocab, JiebaTokenizer
 
 import paddle.nn.functional as F
 
-from model import BoModel
+from model import BoWModel
 from utils import preprocess_prediction_data
 
 parser = argparse.ArgumentParser(__doc__)
 
 parser.add_argument("--device", choices=["cpu", "gpu", "xpu"], default="cpu", help="默认选择的设备")
 parser.add_argument("--batch_size", type=int, default=1, help="批次大小")
-parser.add_argument("--vocab_path", type=str, default="output/vocab.json", help="字典表的路径")
+parser.add_argument("--vocab_path", type=str, default="outputs/vocab.json", help="字典表的路径")
 parser.add_argument("--network",
                     choices=['bow', 'lstm', 'bilstm', 'gru', 'bigru', 'rnn', 'birnn', 'bilstm_attn', 'cnn'],
                     default="bow",
@@ -102,7 +102,7 @@ if __name__ == '__main__':
 
     if network == "bow":
         # 针对词带模型
-        model = BoModel(vocab_size=vocab_size, num_classes=num_classes, padding_idx=pad_token_id)
+        model = BoWModel(vocab_size=vocab_size, num_classes=num_classes, padding_idx=pad_token_id)
     else:
         raise ValueError(
             "不清楚的网络%s,请输入bow, lstm, bilstm, cnn, gru, bigru, rnn, birnn and bilstm_attn其中的一个" % args.network)

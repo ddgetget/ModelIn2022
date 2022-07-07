@@ -16,7 +16,7 @@ import paddle.nn.functional as F
 import paddlenlp as nlp
 
 
-class BoModel(nn.Layer):
+class BoWModel(nn.Layer):
     def __init__(self, vocab_size, num_classes, emb_dim=128, padding_idx=0, hidden_size=128, fc_hidden_size=96):
         """
         词带模型，输出输出维度一样，输入一个序列的，输出的事这个序列加和平均
@@ -27,7 +27,7 @@ class BoModel(nn.Layer):
         :param hidden_size: 隐藏层大小
         :param fc_hidden_size: 全连接层隐藏层大小
         """
-        super(BoModel, self).__init__()
+        super(BoWModel, self).__init__()
 
         # 创建模型的词表embedding
         self.embedder = nn.Embedding(vocab_size, emb_dim, padding_idx=padding_idx)
@@ -40,11 +40,11 @@ class BoModel(nn.Layer):
         # 输出的即为业务维度96
         self.output_layer = nn.Linear(fc_hidden_size, num_classes)
 
-    def forward(self, text, seq_len):
+    def forward(self, text, seq_len=None):
         """
 
         :param text:
-        :param seq_len:
+        :param seq_len:这个参数不谢，无法训练，不给默认值，导成静态文件报错
         :return:
         """
         # 形状：(batch_size, num_tokens, embedding_dim)

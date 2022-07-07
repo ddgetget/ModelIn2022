@@ -32,7 +32,7 @@ from paddlenlp.datasets import load_dataset
 from paddlenlp.data import Vocab, JiebaTokenizer, Stack, Pad, Tuple
 
 # 使用工具集里面咋们自己的构建方法
-from model import BoModel
+from model import BoWModel
 from utils import build_vocab, convert_example
 
 parser = argparse.ArgumentParser(__doc__)
@@ -41,7 +41,7 @@ parser.add_argument("--device", choices=['cpu', 'gpu', 'xpu', 'npu'], default='c
 parser.add_argument("--lr", type=float, default=5e-5, help="训练的学习率")
 parser.add_argument("--save_dir", type=str, default="checkpoints/", help="模型保存的默认路径")
 parser.add_argument("--batch_size", type=int, default=64, help="默认训练批次大小")
-parser.add_argument("--vocab_path", type=str, default="output/vocab.json", help="默认保存词典的位置")
+parser.add_argument("--vocab_path", type=str, default="outputs/vocab.json", help="默认保存词典的位置")
 parser.add_argument("--network",
                     choices=['bow', 'lstm', 'bilstm', 'gru', 'bigru', 'rnn', 'birnn', 'bilstm_attn', 'cnn'],
                     default='bow', help="选择神经网络,默认词带模型bow")
@@ -135,7 +135,7 @@ if __name__ == '__main__':
 
     if network == "bow":
         # 加载BOW模型
-        model = BoModel(vocab_size=vocab_size, num_classes=num_classes, padding_idx=pad_token_id)
+        model = BoWModel(vocab_size=vocab_size, num_classes=num_classes, padding_idx=pad_token_id)
     else:
         raise ValueError("不知道的模型网络:%s，你只能选择bow, lstm, bilstm, cnn, gru, bigru, rnn, birnn and bilstm_attn" % network)
 
