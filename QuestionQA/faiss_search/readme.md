@@ -18,4 +18,13 @@ python index.py zh /Users/geng/Documents/data/data10000/dureader.para outputs/te
 
 
 
-## 2.2. 预测阶段
+## 2.2. 服务端
+```buildoutcfg
+python rocketqa_service.py
+```
+
+
+## 2.3. 客户端
+```buildoutcfg
+python query.py
+```
